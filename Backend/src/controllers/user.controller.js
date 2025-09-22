@@ -26,6 +26,9 @@ const registerUser = asyncHandler(async(req, res) => {
 
     await newUser.save();
 
+    console.log(newUser);
+    
+
     const token = jwt.sign(
       { id: newUser._id, role: newUser.accountType },
       process.env.JWT_SECRET,

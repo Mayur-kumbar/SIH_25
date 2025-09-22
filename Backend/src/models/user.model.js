@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     department: {
       type: String,
-      enum: ["Computer Science", "Electronics", "Mechanical", "Civil"], 
+      enum: ["cse", "ece", "mech", "civil"], 
       required: function () {
         return this.accountType === "student" || this.accountType === "teacher";
       },

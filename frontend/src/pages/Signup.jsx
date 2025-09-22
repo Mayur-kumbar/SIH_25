@@ -25,7 +25,7 @@ export const Signup = () => {
     }
 
     try {
-      const response = await axios.post("Your Backend route", {
+      const response = await axios.post("/api/auth/register", {
         fullName,
         email,
         accountType,

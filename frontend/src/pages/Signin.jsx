@@ -23,6 +23,7 @@ export const Signin = () => {
       });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
+      console.log(res)
       setMessage("Login successful");
       navigate("/dashboard");
     } catch (err) {

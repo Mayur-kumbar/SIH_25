@@ -27,7 +27,7 @@ export const Signin = () => {
       setMessage("Login successful");
       if(res.data.user.role === "student") {
         navigate("/studentDashboard");
-      } else if(res.data.user.role === "faculty") {
+      } else if(res.data.user.role === "teacher") {
         navigate("/facultyDashboard");
       } 
     } catch (err) {

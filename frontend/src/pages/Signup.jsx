@@ -35,9 +35,9 @@ export const Signup = () => {
 
       localStorage.setItem("token", response.data.token);
       console.log(response)
-      if(res.data.user.role === "student") {
+      if(response.data.role === "student") {
         navigate("/studentDashboard");
-      } else if(res.data.user.role === "faculty") {
+      } else if(response.data.role === "teacher") {
         navigate("/facultyDashboard");
       } 
     } catch (err) {

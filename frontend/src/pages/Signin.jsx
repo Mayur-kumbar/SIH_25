@@ -25,7 +25,11 @@ export const Signin = () => {
       localStorage.setItem("role", res.data.user.role);
       console.log(res)
       setMessage("Login successful");
-      navigate("/dashboard");
+      if(res.data.user.role === "student") {
+        navigate("/studentDashboard");
+      } else if(res.data.user.role === "faculty") {
+        navigate("/facultyDashboard");
+      } 
     } catch (err) {
       setMessage(err.response?.data?.message || "Login failed");
     }

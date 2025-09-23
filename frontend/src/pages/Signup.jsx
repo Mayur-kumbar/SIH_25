@@ -35,7 +35,11 @@ export const Signup = () => {
 
       localStorage.setItem("token", response.data.token);
       console.log(response)
-      navigate("/dashboard");
+      if(res.data.user.role === "student") {
+        navigate("/studentDashboard");
+      } else if(res.data.user.role === "faculty") {
+        navigate("/facultyDashboard");
+      } 
     } catch (err) {
       console.error(err);
       alert("Signup failed, please try again!");

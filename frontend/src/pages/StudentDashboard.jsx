@@ -75,7 +75,7 @@ export default function SmartStudentHub() {
               </button>
               <button className="text-gray-500 hover:text-gray-700">
                 <Eye size={20} />
-                <span className="ml-1 text-sm">My Portfolio</span>
+                <span className="ml-1 text-sm">My Profile</span>
               </button>
               <button className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
                 Login

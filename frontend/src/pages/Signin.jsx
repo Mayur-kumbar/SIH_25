@@ -24,6 +24,7 @@ export const Signin = () => {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
       console.log(res)
+      console.log(res.data.token)
       setMessage("Login successful");
       if(res.data.user.role === "student") {
         navigate("/studentDashboard");

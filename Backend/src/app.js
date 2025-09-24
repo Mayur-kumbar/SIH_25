@@ -19,9 +19,11 @@ app.use(cookieParser());
 
 import authRoutes from "./routes/auth.route.js"
 import activityRoutes from "./routes/activity.route.js"
+import userRoutes from "./routes/user.route.js"
 
 app.use("/api/auth", authRoutes);
 app.use("/api/activity", activityRoutes)
+app.use("/api/user", userRoutes);
 
 
 export { app };

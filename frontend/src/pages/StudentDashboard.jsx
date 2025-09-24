@@ -17,6 +17,7 @@ import axios from "axios";
 import ViewDetails from "../components/ViewDetails";
 
 export default function SmartStudentHub() {
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [totalAchievements, setTotalAchievements] = useState(0);
@@ -59,8 +60,32 @@ export default function SmartStudentHub() {
     }
   };
 
+  const getProfile = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      // Redirect to login if no token found
+      window.location.href = "/signin";
+      return;
+    }
+
+    try {
+      const response = await axios.get("/api/user/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUser(response.data.user);
+      console.log("Fetched user profile:", response);
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+    }
+  };
+
   useEffect(() => {
     getData();
+    getProfile();
   }, []);
 
   const stats = [
@@ -131,7 +156,7 @@ export default function SmartStudentHub() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome back, !
+            Welcome back, {user?.fullName}!
           </h1>
           <p className="text-gray-600">
             Track your achievements and build your academic portfolio
@@ -320,7 +345,7 @@ export default function SmartStudentHub() {
                   <p className="text-sm font-medium text-gray-500">
                     Department
                   </p>
-                  <p className="text-sm text-gray-900">Computer Science</p>
+                  <p className="text-sm text-gray-900">{user?.department}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Year</p>

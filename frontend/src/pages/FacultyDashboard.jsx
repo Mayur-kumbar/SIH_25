@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import axios from 'axios';
+
 import { 
   CheckCircle, 
   XCircle, 
@@ -22,15 +25,6 @@ import {
   TrendingUp,
   X
 } from 'lucide-react';
-
-// Mock faculty user data
-const mockFaculty = {
-  name: "Dr. Shreya Ammangi",
-  employeeId: "FAC2024001",
-  department: "Computer Science",
-  designation: "Associate Professor",
-  email: "sarah.johnson@university.edu"
-};
 
 // Mock pending achievements data
 const mockPendingAchievements = [
@@ -78,32 +72,6 @@ const mockPendingAchievements = [
   }
 ];
 
-// Mock approved/rejected achievements
-const mockProcessedAchievements = [
-  {
-    id: 4,
-    studentName: "Emma Davis",
-    studentId: "CS2020012",
-    title: "AWS Certification",
-    category: "Certification",
-    status: "approved",
-    processedDate: "2024-01-18",
-    points: 40,
-    feedback: "Excellent achievement! AWS certifications are highly valuable."
-  },
-  {
-    id: 5,
-    studentName: "John Smith",
-    studentId: "CS2021089",
-    title: "Sports Tournament",
-    category: "Sports",
-    status: "rejected",
-    processedDate: "2024-01-16",
-    points: 0,
-    feedback: "Insufficient evidence provided. Please submit official tournament certificate."
-  }
-];
-
 // Mock students data
 const mockStudents = [
   {
@@ -140,9 +108,9 @@ const mockStudents = [
 
 export default function FacultyDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [faculty] = useState(mockFaculty);
-  const [pendingAchievements, setPendingAchievements] = useState(mockPendingAchievements);
-  const [processedAchievements, setProcessedAchievements] = useState(mockProcessedAchievements);
+  const [user, setUser] = useState(null);
+  const [pendingAchievements, setPendingAchievements] = useState([]);
+  const [processedAchievements, setProcessedAchievements] = useState([]);
   const [students] = useState(mockStudents);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -150,6 +118,61 @@ export default function FacultyDashboard() {
   const [selectedAchievement, setSelectedAchievement] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [feedback, setFeedback] = useState('');
+
+  const getProfile = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      // Redirect to login if no token found
+      window.location.href = "/signin";
+      return;
+    }
+
+    try {
+      const response = await axios.get("/api/user/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUser(response.data.user);
+      console.log("Fetched user profile:", response);
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+    }
+  };
+
+  const getPendingActivities = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.get("/api/activity/pending", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Map backend data to your frontend structure if needed
+      setPendingAchievements(
+        response.data.map((act) => ({
+          id: act._id,
+          studentName: act.student?.fullName,
+          studentId: act.student?._id,
+          title: act.title,
+          category: act.category,
+          description: act.description,
+          date: act.createdAt,
+          status: act.status,
+          // Add other fields as needed
+        }))
+      );
+
+      console.log("Fetched pending activities:", response.data);
+    } catch (err) {
+      console.error("Error fetching pending activities:", err);
+    }
+  };
+
+  useEffect(() => {
+    getProfile();
+    getPendingActivities();
+  }, []);
 
   // Handle approval/rejection
   const handleApproval = (achievementId, action, feedbackText = '') => {
@@ -209,12 +232,12 @@ export default function FacultyDashboard() {
     const matchesStatus = filterStatus === 'all' || achievement.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
-
+  
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome, {faculty.name}!</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.fullName}!</h1>
           <p className="text-gray-600 mt-1">Review student achievements and manage approvals</p>
         </div>
         <div className="flex space-x-2">
@@ -283,7 +306,7 @@ export default function FacultyDashboard() {
         </div>
         <div className="p-6">
           {pendingAchievements.slice(0, 3).map(achievement => (
-            <div key={achievement.id} className="flex items-center justify-between p-4 border rounded-lg mb-4 last:mb-0 hover:bg-gray-50 transition-colors">
+            <div key={achievement._id} className="flex items-center justify-between p-4 border rounded-lg mb-4 last:mb-0 hover:bg-gray-50 transition-colors">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                   <Award size={20} className="text-orange-600" />
@@ -291,7 +314,11 @@ export default function FacultyDashboard() {
                 <div>
                   <h3 className="font-medium text-gray-900">{achievement.title}</h3>
                   <p className="text-sm text-gray-500">
-                    {achievement.studentName} • {achievement.category} • {achievement.submittedDate}
+                    {achievement.studentName} • {achievement.category} • {achievement.date
+                            ? new Date(
+                                achievement.date
+                              ).toLocaleDateString()
+                            : ""}
                   </p>
                 </div>
               </div>
@@ -642,12 +669,11 @@ export default function FacultyDashboard() {
             
             <div className="flex items-center space-x-4">
               <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-gray-900">{faculty.name}</p>
-                <p className="text-sm text-gray-500">{faculty.designation}</p>
+                <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
               </div>
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold">
-                  {faculty.name.split(' ').map(n => n[0]).join('')}
+                  {user?.fullName?.split(' ').map(n => n[0]).join('')}
                 </span>
               </div>
             </div>
@@ -725,7 +751,7 @@ export default function FacultyDashboard() {
                       {selectedAchievement.category}
                     </span>
                     <span className="px-3 py-1 bg-orange-100 text-orange-600 text-sm font-medium rounded-full">
-                      {selectedAchievement.points} points
+                      {selectedAchievement.points || 0} points
                     </span>
                   </div>
                 </div>
@@ -733,20 +759,55 @@ export default function FacultyDashboard() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Student Name</label>
-                    <p className="text-gray-900">{selectedAchievement.studentName}</p>
+                    <p className="text-gray-900">{selectedAchievement.studentName || selectedAchievement.student?.fullName}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Student ID</label>
-                    <p className="text-gray-900">{selectedAchievement.studentId}</p>
+                    <p className="text-gray-900">{selectedAchievement.studentId || selectedAchievement.student?._id}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Semester</label>
-                    <p className="text-gray-900">{selectedAchievement.semester}</p>
+                    <p className="text-gray-900">{selectedAchievement.semester || selectedAchievement.student?.semester}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Achievement Date</label>
-                    <p className="text-gray-900">{selectedAchievement.date}</p>
+                    <p className="text-gray-900">{selectedAchievement.date ? new Date(selectedAchievement.date).toLocaleDateString() : ""}</p>
                   </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2 block">
+                    Proof
+                  </label>
+                  {selectedAchievement.evidence ? (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      {selectedAchievement.evidence.endsWith(".pdf") ? (
+                        <a
+                          href={selectedAchievement.evidence}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                          </svg>
+                          <span>View PDF</span>
+                        </a>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-200 rounded-lg p-2 bg-white">
+                          <img
+                            src={selectedAchievement.evidence}
+                            alt="Proof"
+                            className="w-full max-h-64 object-contain rounded-lg shadow-sm"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 text-gray-500 p-4 rounded-lg text-center italic">
+                      No proof attached
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -792,14 +853,14 @@ export default function FacultyDashboard() {
                 Cancel
               </button>
               <button 
-                onClick={() => handleApproval(selectedAchievement.id, 'rejected', feedback)}
+                onClick={() => handleApproval(selectedAchievement.id || selectedAchievement._id, 'rejected', feedback)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
               >
                 <XCircle size={16} className="mr-2" />
                 Reject
               </button>
               <button 
-                onClick={() => handleApproval(selectedAchievement.id, 'approved', feedback)}
+                onClick={() => handleApproval(selectedAchievement.id || selectedAchievement._id, 'approved', feedback)}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
               >
                 <CheckCircle size={16} className="mr-2" />

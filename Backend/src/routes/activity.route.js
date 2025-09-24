@@ -3,6 +3,7 @@ import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import Activity from "../models/activity.model.js";
 import { upload } from "../middlewares/multer.middleware.js";  
 import { uploadOnCloudinary } from "../utils/cloudinary.js"; 
+import { getMyActivities } from "../controllers/activity.controller.js";
 
 const router = Router();
 
@@ -13,12 +14,15 @@ router.post("/upload", protect, authorizeRoles("student"), upload.fields([
   }
 ]), async (req, res) => {
   try {
-    const { category, description } = req.body;
+    const { title, category, description } = req.body;
 
     if (!req.files || !req.files.proof || req.files.proof.length === 0) {
       return res.status(400).json({ message: "Proof file is required" });
     }
 
+    console.log("Received upload request");
+    console.log("Files:", req.files);
+    console.log("Body:", req.body);
     const cloudinaryResult = await uploadOnCloudinary(req.files.proof[0].path);
     if (!cloudinaryResult) {
       return res.status(500).json({ message: "Cloudinary upload failed" });
@@ -26,6 +30,7 @@ router.post("/upload", protect, authorizeRoles("student"), upload.fields([
 
     const activity = await Activity.create({
       student: req.user._id,
+      title,
       category,
       description,
       proofUrl: cloudinaryResult.secure_url,
@@ -67,14 +72,7 @@ router.post("/upload", protect, authorizeRoles("student"), upload.fields([
 //   }
 // });
 
-// router.get("/my", protect, authorizeRoles("student"), async (req, res) => {
-//   try {
-//     const activities = await Activity.find({ student: req.user._id }).populate("approver", "name email role");
-//     res.json(activities);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+router.get("/my", protect, authorizeRoles("student"), getMyActivities);
 
 // router.get("/pending", protect, authorizeRoles("teacher"), async (_req, res) => {
 //   try {

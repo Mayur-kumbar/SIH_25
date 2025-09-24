@@ -12,6 +12,10 @@ const activitySchema = new mongoose.Schema(
       enum: ["conference", "certification", "internship", "competition"],
       required: true,
     }, 
+    title: {
+      type: String,
+      required: true,
+    },
     description: {
       type: String,
       required: true,

@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { Upload, Eye, List, Plus, Bell, User, Home, BarChart3, Settings, Award, Calendar, Users, FileText } from 'lucide-react';
+import AchievementUpload from '../components/AchievementUpload';
 
 export default function SmartStudentHub() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const stats = [
     { label: 'Total Achievements', value: '3', sublabel: 'All live achievements', color: 'bg-blue-50' },
     { label: 'Approved', value: '2', sublabel: 'Verified achievements', color: 'bg-green-50' },
     { label: 'Pending Approval', value: '1', sublabel: 'Waiting faculty review', color: 'bg-yellow-50' },
-<<<<<<< HEAD
-=======
-    { label: 'Portfolio Score', value: '85%', sublabel: 'Current rating', trend: '+5%', color: 'bg-purple-50' }
->>>>>>> 3964b751227fd04143bb08b28bc3c8b1aca548a8
+
   ];
 
   const achievements = [
@@ -68,7 +67,9 @@ export default function SmartStudentHub() {
                 <Home size={20} />
                 <span className="ml-1 text-sm">Dashboard</span>
               </button>
-              <button className="text-gray-500 hover:text-gray-700">
+              <button className="text-gray-500 hover:text-gray-700 hover:cursor-pointer"
+                onClick={() => setUploadOpen(true)}
+              >
                 <Upload size={20} />
                 <span className="ml-1 text-sm">Upload Achievement</span>
               </button>
@@ -123,10 +124,13 @@ export default function SmartStudentHub() {
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-gray-900">Recent Achievements</h2>
-                  <button className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center">
+                  <button className="bg-teal-600 text-white hover:cursor-pointer px-4 py-2 rounded-lg text-sm font-medium flex items-center"
+                    onClick={() => setUploadOpen(true)}
+                  >
                     <Plus size={16} className="mr-2" />
                     Add Achievement
                   </button>
+                  <AchievementUpload open={uploadOpen} onClose={() => setUploadOpen(false)} />
                 </div>
               </div>
               <div className="p-6 space-y-4">
@@ -175,7 +179,9 @@ export default function SmartStudentHub() {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center px-4 py-3 bg-teal-50 text-teal-700 rounded-lg hover:bg-teal-100 transition-colors">
+                <button className="w-full flex items-center px-4 py-3 hover:cursor-pointer bg-teal-50 text-teal-700 rounded-lg hover:bg-teal-100 transition-colors"
+                  onClick={() => setUploadOpen(true)}
+                >
                   <Upload size={16} className="mr-3" />
                   Upload New Achievement
                 </button>

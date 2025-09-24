@@ -8,6 +8,10 @@ export default function SmartStudentHub() {
     { label: 'Total Achievements', value: '3', sublabel: 'All live achievements', color: 'bg-blue-50' },
     { label: 'Approved', value: '2', sublabel: 'Verified achievements', color: 'bg-green-50' },
     { label: 'Pending Approval', value: '1', sublabel: 'Waiting faculty review', color: 'bg-yellow-50' },
+<<<<<<< HEAD
+=======
+    { label: 'Portfolio Score', value: '85%', sublabel: 'Current rating', trend: '+5%', color: 'bg-purple-50' }
+>>>>>>> 3964b751227fd04143bb08b28bc3c8b1aca548a8
   ];
 
   const achievements = [

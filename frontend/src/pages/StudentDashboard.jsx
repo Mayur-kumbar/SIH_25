@@ -1,51 +1,92 @@
-import React, { useState } from 'react';
-import { Upload, Eye, List, Plus, Bell, User, Home, BarChart3, Settings, Award, Calendar, Users, FileText } from 'lucide-react';
-import AchievementUpload from '../components/AchievementUpload';
+import React, { useState, useEffect } from "react";
+import {
+  Upload,
+  Eye,
+  List,
+  Plus,
+  Bell,
+  Home,
+  BarChart3,
+  Settings,
+  Award,
+  Calendar,
+  FileText,
+} from "lucide-react";
+import AchievementUpload from "../components/AchievementUpload";
+import axios from "axios";
+import ViewDetails from "../components/ViewDetails";
 
 export default function SmartStudentHub() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [totalAchievements, setTotalAchievements] = useState(0);
+  const [approvedAchievements, setApprovedAchievements] = useState(0);
+  const [pendingAchievements, setPendingAchievements] = useState(0);
+  const [activities, setActivities] = useState([]);
+  const [selectedAchievement, setSelectedAchievement] = useState(null);
+  const [viewOpen, setViewOpen] = useState(false);
+
+  const getData = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      // Redirect to login if no token found
+      window.location.href = "/signin";
+      return;
+    }
+
+    try {
+      const response = await axios.get("/api/activity/my", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setTotalAchievements(response.data.count);
+      setApprovedAchievements(
+        response.data.activities.filter((act) => act.status === "approved")
+          .length
+      );
+      setPendingAchievements(
+        response.data.activities.filter((act) => act.status === "pending")
+          .length
+      );
+      setActivities(response.data.activities);
+
+      console.log("Fetched activities:", response);
+    } catch (err) {
+      console.error("Error fetching activities:", err);
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
 
   const stats = [
-    { label: 'Total Achievements', value: '3', sublabel: 'All live achievements', color: 'bg-blue-50' },
-    { label: 'Approved', value: '2', sublabel: 'Verified achievements', color: 'bg-green-50' },
-    { label: 'Pending Approval', value: '1', sublabel: 'Waiting faculty review', color: 'bg-yellow-50' },
-
-  ];
-
-  const achievements = [
     {
-      id: 1,
-      title: 'Best Project Award',
-      description: 'Won first place in the annual project competition for developing an AI-powered study assistant',
-      date: '3/15/2024',
-      status: 'Approved',
-      approver: 'Dr. Emily Rodriguez on 3/20/2024',
-      statusColor: 'text-green-600 bg-green-100'
+      label: "Total Achievements",
+      value: totalAchievements,
+      sublabel: "All live achievements",
+      color: "bg-blue-50",
     },
     {
-      id: 2,
-      title: 'AWS Cloud Practitioner Certification',
-      description: 'Successfully completed AWS Cloud Practitioner certification with a score of 95%',
-      date: '2/10/2024',
-      status: 'Approved',
-      approver: 'Prof. Michael Thompson on 2/15/2024',
-      statusColor: 'text-green-600 bg-green-100'
+      label: "Approved",
+      value: approvedAchievements,
+      sublabel: "Verified achievements",
+      color: "bg-green-50",
     },
     {
-      id: 3,
-      title: 'Hackathon Participation',
-      description: 'Participated in the 48-hour Smart City hackathon and developed a traffic management solution',
-      date: '1/20/2024',
-      status: 'Pending',
-      approver: '',
-      statusColor: 'text-yellow-600 bg-yellow-100'
-    }
+      label: "Pending Approval",
+      value: pendingAchievements,
+      sublabel: "Waiting faculty review",
+      color: "bg-yellow-50",
+    },
   ];
 
   const upcomingDeadlines = [
-    { title: 'Portfolio Review', date: 'Tomorrow', type: 'Review' },
-    { title: 'NAAC Documentation', date: '5 days', type: 'Submission' }
+    { title: "Portfolio Review", date: "Tomorrow", type: "Review" },
+    { title: "NAAC Documentation", date: "5 days", type: "Submission" },
   ];
 
   return (
@@ -54,20 +95,21 @@ export default function SmartStudentHub() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">S</span>
-                </div>
-                <span className="text-xl font-semibold text-gray-900">Smart Student Hub</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
               </div>
+              <span className="text-xl font-semibold text-gray-900">
+                Smart Student Hub
+              </span>
             </div>
             <div className="flex items-center space-x-4">
               <button className="text-gray-500 hover:text-gray-700">
                 <Home size={20} />
                 <span className="ml-1 text-sm">Dashboard</span>
               </button>
-              <button className="text-gray-500 hover:text-gray-700 hover:cursor-pointer"
+              <button
+                className="text-gray-500 hover:text-gray-700 hover:cursor-pointer"
                 onClick={() => setUploadOpen(true)}
               >
                 <Upload size={20} />
@@ -88,8 +130,12 @@ export default function SmartStudentHub() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back, Alex!</h1>
-          <p className="text-gray-600">Track your achievements and build your academic portfolio</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Welcome back, !
+          </h1>
+          <p className="text-gray-600">
+            Track your achievements and build your academic portfolio
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -98,21 +144,40 @@ export default function SmartStudentHub() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map((stat, index) => (
-                <div key={index} className={`${stat.color} p-6 rounded-xl border`}>
+                <div
+                  key={index}
+                  className={`${stat.color} p-6 rounded-xl border`}
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
-                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                      <p className="text-xs text-gray-500 mt-1">{stat.sublabel}</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        {stat.label}
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {stat.value}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {stat.sublabel}
+                      </p>
                       {stat.trend && (
-                        <p className="text-xs text-green-600 mt-1">{stat.trend} from last month</p>
+                        <p className="text-xs text-green-600 mt-1">
+                          {stat.trend} from last month
+                        </p>
                       )}
                     </div>
                     <div className="w-8 h-8 bg-white bg-opacity-50 rounded-lg flex items-center justify-center">
-                      {index === 0 && <Award size={16} className="text-blue-600" />}
-                      {index === 1 && <FileText size={16} className="text-green-600" />}
-                      {index === 2 && <Calendar size={16} className="text-yellow-600" />}
-                      {index === 3 && <BarChart3 size={16} className="text-purple-600" />}
+                      {index === 0 && (
+                        <Award size={16} className="text-blue-600" />
+                      )}
+                      {index === 1 && (
+                        <FileText size={16} className="text-green-600" />
+                      )}
+                      {index === 2 && (
+                        <Calendar size={16} className="text-yellow-600" />
+                      )}
+                      {index === 3 && (
+                        <BarChart3 size={16} className="text-purple-600" />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -121,52 +186,94 @@ export default function SmartStudentHub() {
 
             {/* Recent Achievements */}
             <div className="bg-white rounded-xl shadow-sm border">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Recent Achievements</h2>
-                  <button className="bg-teal-600 text-white hover:cursor-pointer px-4 py-2 rounded-lg text-sm font-medium flex items-center"
-                    onClick={() => setUploadOpen(true)}
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Add Achievement
-                  </button>
-                  <AchievementUpload open={uploadOpen} onClose={() => setUploadOpen(false)} />
-                </div>
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Recent Achievements
+                </h2>
+                <button
+                  className="bg-teal-600 text-white hover:cursor-pointer px-4 py-2 rounded-lg text-sm font-medium flex items-center"
+                  onClick={() => setUploadOpen(true)}
+                >
+                  <Plus size={16} className="mr-2" />
+                  Add Achievement
+                </button>
+                <AchievementUpload
+                  open={uploadOpen}
+                  onClose={() => setUploadOpen(false)}
+                />
               </div>
               <div className="p-6 space-y-4">
-                {achievements.map((achievement) => (
-                  <div key={achievement.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
-                          <Award size={16} className="text-teal-600" />
+                {activities.length === 0 ? (
+                  <p className="text-gray-500 text-sm">
+                    No achievements found.
+                  </p>
+                ) : (
+                  activities.map((achievement) => (
+                    <div
+                      key={achievement._id || achievement.id}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                            <Award size={16} className="text-teal-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">
+                              {achievement.title}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {achievement.description}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{achievement.title}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{achievement.description}</p>
-                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            achievement.status === "approved"
+                              ? "text-green-600 bg-green-100"
+                              : achievement.status === "pending"
+                              ? "text-yellow-600 bg-yellow-100"
+                              : "text-gray-600 bg-gray-100"
+                              ? achievement.status === "rejected"
+                              : "text-red-600 bg-red-100"
+                          }`}
+                        >
+                          {achievement.status}
+                        </span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${achievement.statusColor}`}>
-                        {achievement.status}
-                      </span>
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <span className="flex items-center">
+                          <Calendar size={14} className="mr-1" />
+                          {achievement.updatedAt
+                            ? new Date(
+                                achievement.updatedAt
+                              ).toLocaleDateString()
+                            : ""}
+                        </span>
+                        {achievement.approver && (
+                          <span>Approved by {achievement.approver}</span>
+                        )}
+                      </div>
+                      <div className="mt-3 flex space-x-2">
+                        <button
+                          className="bg-orange-500 text-white px-3 py-1 rounded text-xs font-medium"
+                          onClick={() => {
+                            setSelectedAchievement(achievement);
+                            setViewOpen(true);
+                          }}
+                        >
+                          View Details
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <Calendar size={14} className="mr-1" />
-                        {achievement.date}
-                      </span>
-                      {achievement.approver && (
-                        <span>Approved by {achievement.approver}</span>
-                      )}
-                    </div>
-                    <div className="mt-3 flex space-x-2">
-                      <button className="bg-orange-500 text-white px-3 py-1 rounded text-xs font-medium">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
+              <ViewDetails
+                open={viewOpen}
+                onClose={() => setViewOpen(false)}
+                achievement={selectedAchievement}
+              />
             </div>
           </div>
 
@@ -179,7 +286,8 @@ export default function SmartStudentHub() {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center px-4 py-3 hover:cursor-pointer bg-teal-50 text-teal-700 rounded-lg hover:bg-teal-100 transition-colors"
+                <button
+                  className="w-full flex items-center px-4 py-3 hover:cursor-pointer bg-teal-50 text-teal-700 rounded-lg hover:bg-teal-100 transition-colors"
                   onClick={() => setUploadOpen(true)}
                 >
                   <Upload size={16} className="mr-3" />
@@ -198,14 +306,20 @@ export default function SmartStudentHub() {
 
             {/* Student Information */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Student Information
+              </h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Roll Number</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Roll Number
+                  </p>
                   <p className="text-sm text-gray-900">N/A</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Department</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Department
+                  </p>
                   <p className="text-sm text-gray-900">Computer Science</p>
                 </div>
                 <div>
@@ -223,9 +337,14 @@ export default function SmartStudentHub() {
               </h3>
               <div className="space-y-3">
                 {upcomingDeadlines.map((deadline, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{deadline.title}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {deadline.title}
+                      </p>
                       <p className="text-xs text-gray-500">{deadline.type}</p>
                     </div>
                     <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-1 rounded">

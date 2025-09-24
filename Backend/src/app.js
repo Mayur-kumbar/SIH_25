@@ -23,4 +23,5 @@ import activityRoutes from "./routes/activity.route.js"
 app.use("/api/auth", authRoutes);
 app.use("/api/activity", activityRoutes)
 
+
 export { app };

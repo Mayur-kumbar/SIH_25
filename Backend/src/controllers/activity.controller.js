@@ -37,7 +37,7 @@ const createActivity = async (req, res) => {
 const getMyActivities = async (req, res) => {
   try {
     const activities = await Activity.find({ student: req.user.id })
-      .populate("approver", "name email role") 
+      .populate("approver", "fullName email accountType") 
       .sort({ createdAt: -1 }); 
 
     res.json({

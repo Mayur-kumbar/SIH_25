@@ -31,7 +31,6 @@ export default function SmartStudentHub() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      // Redirect to login if no token found
       window.location.href = "/signin";
       return;
     }
@@ -64,7 +63,6 @@ export default function SmartStudentHub() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      // Redirect to login if no token found
       window.location.href = "/signin";
       return;
     }
@@ -113,6 +111,14 @@ export default function SmartStudentHub() {
     { title: "Portfolio Review", date: "Tomorrow", type: "Review" },
     { title: "NAAC Documentation", date: "5 days", type: "Submission" },
   ];
+
+  // Helper for status color
+  const getStatusClass = (status) => {
+    if (status === "approved") return "text-green-600 bg-green-100";
+    if (status === "pending") return "text-yellow-600 bg-yellow-100";
+    if (status === "rejected") return "text-red-600 bg-red-100";
+    return "text-gray-600 bg-gray-100";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -222,10 +228,6 @@ export default function SmartStudentHub() {
                   <Plus size={16} className="mr-2" />
                   Add Achievement
                 </button>
-                <AchievementUpload
-                  open={uploadOpen}
-                  onClose={() => setUploadOpen(false)}
-                />
               </div>
               <div className="p-6 space-y-4">
                 {activities.length === 0 ? (
@@ -253,15 +255,9 @@ export default function SmartStudentHub() {
                           </div>
                         </div>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            achievement.status === "approved"
-                              ? "text-green-600 bg-green-100"
-                              : achievement.status === "pending"
-                              ? "text-yellow-600 bg-yellow-100"
-                              : "text-gray-600 bg-gray-100"
-                              ? achievement.status === "rejected"
-                              : "text-red-600 bg-red-100"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(
+                            achievement.status
+                          )}`}
                         >
                           {achievement.status}
                         </span>
@@ -276,7 +272,13 @@ export default function SmartStudentHub() {
                             : ""}
                         </span>
                         {achievement.approver && (
-                          <span>Approved by {achievement.approver}</span>
+                          <span>
+                            {achievement.approver && achievement.status === "approved" ? "Approved" : "Rejected"} by{" "}
+                            {typeof achievement.approver === "object"
+                              ? achievement.approver.fullName ||
+                                achievement.approver.email
+                              : achievement.approver}
+                          </span>
                         )}
                       </div>
                       <div className="mt-3 flex space-x-2">
@@ -382,6 +384,12 @@ export default function SmartStudentHub() {
           </div>
         </div>
       </div>
+      {/* Achievement Upload Modal */}
+      <AchievementUpload
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUpload={getData}
+      />
     </div>
   );
 }

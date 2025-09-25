@@ -51,35 +51,41 @@ router.post(
   }
 );
 
-// router.put("/:id/approve", protect, authorizeRoles("teacher"), async (req, res) => {
-//   try {
-//     const activity = await Activity.findById(req.params.id);
-//     if (!activity) return res.status(404).json({ message: "Activity not found" });
+router.put(
+  "/:id/approve",
+  protect,
+  authorizeRoles("teacher"),
+  async (req, res) => {
+    try {
+      const activity = await Activity.findById(req.params.id);
+      if (!activity)
+        return res.status(404).json({ message: "Activity not found" });
 
-//     activity.status = "Approved";
-//     activity.approver = req.user._id;
+      activity.status = "approved";
+      activity.approver = req.user._id;
 
-//     await activity.save();
-//     res.json({ message: "Activity approved", activity });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+      await activity.save();
+      res.json({ message: "Activity approved", activity });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
 
-// router.put("/:id/reject", protect, authorizeRoles("teacher"), async (req, res) => {
-//   try {
-//     const activity = await Activity.findById(req.params.id);
-//     if (!activity) return res.status(404).json({ message: "Activity not found" });
+router.put("/:id/reject", protect, authorizeRoles("teacher"), async (req, res) => {
+  try {
+    const activity = await Activity.findById(req.params.id);
+    if (!activity) return res.status(404).json({ message: "Activity not found" });
 
-//     activity.status = "Rejected";
-//     activity.approver = req.user._id;
+    activity.status = "rejected";
+    activity.approver = req.user._id;
 
-//     await activity.save();
-//     res.json({ message: "Activity rejected", activity });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+    await activity.save();
+    res.json({ message: "Activity rejected", activity });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 router.get("/my", protect, authorizeRoles("student"), getMyActivities);
 

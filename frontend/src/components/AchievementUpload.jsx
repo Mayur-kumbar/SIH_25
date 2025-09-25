@@ -109,11 +109,11 @@ export default function AchievementUpload({ open, onClose, onUpload }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Certificate / Proof (PDF or Image)
+              Certificate / Proof (Image)
             </label>
             <input
               type="file"
-              accept="image/*,application/pdf"
+              accept="image/*"
               ref={fileInputRef}
               onChange={handleFileChange}
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"

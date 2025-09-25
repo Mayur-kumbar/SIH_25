@@ -118,11 +118,11 @@ export default function ViewDetails({ open, onClose, achievement }) {
             {achievement.approver && (
               <div>
                 <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2 block">
-                  Approver
+                  {achievement.status === "approved" ? "Approved By" : "Rejected By"}
                 </label>
                 <div className="flex items-center space-x-2 text-gray-700 bg-gray-50 p-3 rounded-lg">
                   <User size={16} className="text-gray-500" />
-                  <span className="font-medium">{achievement.approver}</span>
+                  <span className="font-medium">{achievement.approver.fullName}</span>
                 </div>
               </div>
             )}

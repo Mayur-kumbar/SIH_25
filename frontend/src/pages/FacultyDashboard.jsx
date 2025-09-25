@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useEffect } from "react";
+import axios from "axios";
 
-import { 
-  CheckCircle, 
-  XCircle, 
-  Eye, 
-  Download, 
-  Filter, 
-  Search, 
-  Users, 
-  Award, 
-  Clock, 
-  FileText, 
-  BarChart3, 
+import {
+  CheckCircle,
+  XCircle,
+  Eye,
+  Download,
+  Filter,
+  Search,
+  Users,
+  Award,
+  Clock,
+  FileText,
+  BarChart3,
   Home,
   Settings,
   Bell,
@@ -23,101 +23,21 @@ import {
   User,
   GraduationCap,
   TrendingUp,
-  X
-} from 'lucide-react';
-
-// Mock pending achievements data
-const mockPendingAchievements = [
-  {
-    id: 1,
-    studentName: "Alex Johnson",
-    studentId: "CS2021001",
-    semester: 6,
-    title: "Hackathon Participation",
-    category: "Competition",
-    description: "Participated in the 48-hour Smart City hackathon and developed a traffic management solution that won 2nd place",
-    date: "2024-01-20",
-    submittedDate: "2024-01-25",
-    evidence: "hackathon_certificate.pdf",
-    status: "pending",
-    points: 30
-  },
-  {
-    id: 2,
-    studentName: "Sarah Miller",
-    studentId: "CS2021045",
-    semester: 4,
-    title: "Research Publication",
-    category: "Academic",
-    description: "Co-authored research paper on Machine Learning applications in Healthcare published in IEEE conference",
-    date: "2024-02-15",
-    submittedDate: "2024-02-20",
-    evidence: "research_paper.pdf",
-    status: "pending",
-    points: 50
-  },
-  {
-    id: 3,
-    studentName: "Mike Chen",
-    studentId: "CS2021023",
-    semester: 8,
-    title: "Open Source Contribution",
-    category: "Technical",
-    description: "Contributed 15+ pull requests to popular React library with 10k+ GitHub stars",
-    date: "2024-01-10",
-    submittedDate: "2024-01-15",
-    evidence: "github_contributions.pdf",
-    status: "pending",
-    points: 35
-  }
-];
-
-// Mock students data
-const mockStudents = [
-  {
-    id: 1,
-    name: "Alex Johnson",
-    studentId: "CS2021001",
-    semester: 6,
-    totalAchievements: 3,
-    approvedAchievements: 2,
-    totalPoints: 90,
-    lastActivity: "2024-01-25"
-  },
-  {
-    id: 2,
-    name: "Sarah Miller",
-    studentId: "CS2021045",
-    semester: 4,
-    totalAchievements: 2,
-    approvedAchievements: 1,
-    totalPoints: 45,
-    lastActivity: "2024-02-20"
-  },
-  {
-    id: 3,
-    name: "Mike Chen",
-    studentId: "CS2021023",
-    semester: 8,
-    totalAchievements: 4,
-    approvedAchievements: 3,
-    totalPoints: 120,
-    lastActivity: "2024-01-15"
-  }
-];
+  X,
+} from "lucide-react";
 
 export default function FacultyDashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [user, setUser] = useState(null);
   const [pendingAchievements, setPendingAchievements] = useState([]);
   const [processedAchievements, setProcessedAchievements] = useState([]);
-  const [students] = useState(mockStudents);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('all');
+  const [students] = useState();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [selectedAchievement, setSelectedAchievement] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState("");
 
   const getProfile = async () => {
     const token = localStorage.getItem("token");
@@ -158,7 +78,9 @@ export default function FacultyDashboard() {
           category: act.category,
           description: act.description,
           date: act.createdAt,
+          submittedDate: act.updatedAt,
           status: act.status,
+          proofUrl: act.proofUrl,
           // Add other fields as needed
         }))
       );
@@ -175,32 +97,39 @@ export default function FacultyDashboard() {
   }, []);
 
   // Handle approval/rejection
-  const handleApproval = (achievementId, action, feedbackText = '') => {
-    const achievement = pendingAchievements.find(a => a.id === achievementId);
-    if (!achievement) return;
-
-    const processedAchievement = {
-      ...achievement,
-      status: action,
-      processedDate: new Date().toISOString().split('T')[0],
-      feedback: feedbackText,
-      points: action === 'approved' ? achievement.points : 0
-    };
-
-    // Remove from pending
-    setPendingAchievements(prev => prev.filter(a => a.id !== achievementId));
-    
-    // Add to processed
-    setProcessedAchievements(prev => [processedAchievement, ...prev]);
-
-    // Close modal
+  const approveActivity = async (activityId) => {
+  const token = localStorage.getItem("token");
+  try {
+    await axios.put(
+      `/api/activity/${activityId}/approve`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    getPendingActivities();
     setShowModal(false);
-    setSelectedAchievement(null);
-    setFeedback('');
+    alert("Activity approved successfully");
+  } catch (err) {
+    alert("Failed to approve activity");
+  }
+};
 
-    // In real app, make API call here
-    console.log(`Achievement ${achievementId} ${action}`, { feedback: feedbackText });
-  };
+  const rejectActivity = async(activityId) => {
+    const token = localStorage.getItem("token")
+    try{
+      await axios.put(`/api/activity/${activityId}/reject`, {}, 
+        {
+          headers: { Authorization: `Bearer ${token}`},
+        }
+      );
+      getPendingActivities();
+      setShowModal(false);
+      alert("Activity rejected successfully");
+    } catch (err) {
+      alert("Failed to reject activity");
+    }
+  }
 
   const openApprovalModal = (achievement) => {
     setSelectedAchievement(achievement);
@@ -210,35 +139,47 @@ export default function FacultyDashboard() {
   // Computed stats
   const stats = {
     pendingReviews: pendingAchievements.length,
-    approvedToday: processedAchievements.filter(a => 
-      a.status === 'approved' && a.processedDate === new Date().toISOString().split('T')[0]
+    approvedToday: processedAchievements.filter(
+      (a) =>
+        a.status === "approved" &&
+        a.processedDate === new Date().toISOString().split("T")[0]
     ).length,
-    totalStudents: students.length,
-    avgPoints: Math.round(students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length)
+    // totalStudents: students.length,
+    // avgPoints: Math.round(students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length)
   };
 
   // Filter achievements
-  const filteredPending = pendingAchievements.filter(achievement => {
-    const matchesSearch = achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         achievement.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         achievement.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || achievement.category === filterCategory;
+  const filteredPending = pendingAchievements.filter((achievement) => {
+    const matchesSearch =
+      achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      achievement.studentName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      achievement.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      filterCategory === "all" || achievement.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const filteredProcessed = processedAchievements.filter(achievement => {
-    const matchesSearch = achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         achievement.studentName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || achievement.status === filterStatus;
+  const filteredProcessed = processedAchievements.filter((achievement) => {
+    const matchesSearch =
+      achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      achievement.studentName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      filterStatus === "all" || achievement.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
-  
+
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.fullName}!</h1>
-          <p className="text-gray-600 mt-1">Review student achievements and manage approvals</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Welcome, {user?.fullName}!
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Review student achievements and manage approvals
+          </p>
         </div>
         <div className="flex space-x-2">
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors">
@@ -253,38 +194,52 @@ export default function FacultyDashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending Reviews</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.pendingReviews}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Pending Reviews
+              </p>
+              <p className="text-2xl font-bold text-orange-600">
+                {stats.pendingReviews}
+              </p>
             </div>
             <Clock className="w-8 h-8 text-orange-600" />
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Approved Today</p>
-              <p className="text-2xl font-bold text-green-600">{stats.approvedToday}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Approved Today
+              </p>
+              <p className="text-2xl font-bold text-green-600">
+                {stats.approvedToday}
+              </p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.totalStudents}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Students
+              </p>
+              <p className="text-2xl font-bold text-blue-600">
+                {stats.totalStudents}
+              </p>
             </div>
             <Users className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Avg Points</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.avgPoints}</p>
+              <p className="text-2xl font-bold text-purple-600">
+                {stats.avgPoints}
+              </p>
             </div>
             <TrendingUp className="w-8 h-8 text-purple-600" />
           </div>
@@ -295,9 +250,11 @@ export default function FacultyDashboard() {
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="p-6 border-b border-gray-100">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Pending Reviews</h2>
-            <button 
-              onClick={() => setActiveTab('approvals')}
+            <h2 className="text-lg font-semibold text-gray-900">
+              Recent Pending Reviews
+            </h2>
+            <button
+              onClick={() => setActiveTab("approvals")}
               className="text-blue-600 hover:text-blue-700 text-sm font-medium"
             >
               View All
@@ -305,25 +262,29 @@ export default function FacultyDashboard() {
           </div>
         </div>
         <div className="p-6">
-          {pendingAchievements.slice(0, 3).map(achievement => (
-            <div key={achievement._id} className="flex items-center justify-between p-4 border rounded-lg mb-4 last:mb-0 hover:bg-gray-50 transition-colors">
+          {pendingAchievements.slice(0, 3).map((achievement) => (
+            <div
+              key={achievement._id}
+              className="flex items-center justify-between p-4 border rounded-lg mb-4 last:mb-0 hover:bg-gray-50 transition-colors"
+            >
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                   <Award size={20} className="text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{achievement.title}</h3>
+                  <h3 className="font-medium text-gray-900">
+                    {achievement.title}
+                  </h3>
                   <p className="text-sm text-gray-500">
-                    {achievement.studentName} • {achievement.category} • {achievement.date
-                            ? new Date(
-                                achievement.date
-                              ).toLocaleDateString()
-                            : ""}
+                    {achievement.studentName} • {achievement.category} •{" "}
+                    {achievement.date
+                      ? new Date(achievement.date).toLocaleDateString()
+                      : ""}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <button 
+                <button
                   onClick={() => openApprovalModal(achievement)}
                   className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
                 >
@@ -341,8 +302,12 @@ export default function FacultyDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Achievement Approvals</h1>
-          <p className="text-gray-600 mt-1">Review and approve student achievements</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Achievement Approvals
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Review and approve student achievements
+          </p>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-500">
@@ -380,23 +345,29 @@ export default function FacultyDashboard() {
 
       {/* Pending Achievements */}
       <div className="space-y-4">
-        {filteredPending.map(achievement => (
-          <div key={achievement.id} className="bg-white rounded-xl shadow-sm border p-6">
+        {filteredPending.map((achievement) => (
+          <div
+            key={achievement.id}
+            className="bg-white rounded-xl shadow-sm border p-6"
+          >
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{achievement.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {achievement.title}
+                  </h3>
                   <span className="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full">
                     {achievement.category}
                   </span>
-                  <span className="px-3 py-1 bg-orange-100 text-orange-600 text-sm font-medium rounded-full">
+                  {/* <span className="px-3 py-1 bg-orange-100 text-orange-600 text-sm font-medium rounded-full">
                     {achievement.points} points
-                  </span>
+                  </span> */}
                 </div>
-                
+
                 <div className="mb-3">
                   <p className="text-sm text-gray-600 mb-1">
-                    <span className="font-medium">Student:</span> {achievement.studentName} ({achievement.studentId}) - Semester {achievement.semester}
+                    <span className="font-medium">Student:</span>{" "}
+                    {achievement.studentName} ({achievement.studentId}) 
                   </p>
                   <p className="text-gray-700">{achievement.description}</p>
                 </div>
@@ -404,13 +375,13 @@ export default function FacultyDashboard() {
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
                   <span className="flex items-center">
                     <Calendar size={14} className="mr-1" />
-                    Achievement Date: {achievement.date}
+                    Achievement Date: {achievement.date ? new Date(achievement.date).toLocaleDateString() : ""}
                   </span>
                   <span className="flex items-center">
                     <Clock size={14} className="mr-1" />
-                    Submitted: {achievement.submittedDate}
+                    Submitted: {achievement.submittedDate ? new Date(achievement.submittedDate).toLocaleDateString() : ""}
                   </span>
-                  {achievement.evidence && (
+                  {achievement.proofUrl && (
                     <span className="flex items-center">
                       <FileText size={14} className="mr-1" />
                       Evidence attached
@@ -419,33 +390,35 @@ export default function FacultyDashboard() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
-              <button 
+              <button
                 onClick={() => openApprovalModal(achievement)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
               >
                 <Eye size={16} className="mr-2" />
                 Review Details
               </button>
-              <button 
-                onClick={() => handleApproval(achievement.id, 'approved', 'Good achievement!')}
+              <button
+                onClick={() => approveActivity(achievement.id || achievement._id)}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
               >
                 <CheckCircle size={16} className="mr-2" />
                 Quick Approve
               </button>
-              <button 
-                onClick={() => handleApproval(achievement.id, 'rejected', 'Needs more evidence')}
+              <button
+                onClick={() => rejectActivity(achievement.id || achievement._id)}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center"
               >
                 <XCircle size={16} className="mr-2" />
                 Quick Reject
               </button>
-              {achievement.evidence && (
-                <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
-                  <Download size={16} className="mr-2" />
-                  Download Evidence
+              {achievement.proofUrl && (
+                <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+                onClick={() => window.open(achievement.proofUrl, "_blank")}
+                >
+                  <Eye size={16} className="mr-2" />
+                  See Evidence
                 </button>
               )}
             </div>
@@ -455,7 +428,9 @@ export default function FacultyDashboard() {
         {filteredPending.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
             <CheckCircle className="mx-auto h-12 w-12 text-green-400 mb-3" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              All caught up!
+            </h3>
             <p className="text-gray-500">No pending achievements to review</p>
           </div>
         )}
@@ -468,7 +443,9 @@ export default function FacultyDashboard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Review History</h1>
-          <p className="text-gray-600 mt-1">Previously approved and rejected achievements</p>
+          <p className="text-gray-600 mt-1">
+            Previously approved and rejected achievements
+          </p>
         </div>
       </div>
 
@@ -497,20 +474,27 @@ export default function FacultyDashboard() {
 
       {/* Processed Achievements */}
       <div className="space-y-4">
-        {filteredProcessed.map(achievement => (
-          <div key={achievement.id} className="bg-white rounded-xl shadow-sm border p-6">
+        {filteredProcessed.map((achievement) => (
+          <div
+            key={achievement.id}
+            className="bg-white rounded-xl shadow-sm border p-6"
+          >
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{achievement.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {achievement.title}
+                  </h3>
                   <span className="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full">
                     {achievement.category}
                   </span>
-                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                    achievement.status === 'approved' 
-                      ? 'bg-green-100 text-green-600' 
-                      : 'bg-red-100 text-red-600'
-                  }`}>
+                  <span
+                    className={`px-3 py-1 text-sm font-medium rounded-full ${
+                      achievement.status === "approved"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
                     {achievement.status}
                   </span>
                   {achievement.points > 0 && (
@@ -519,25 +503,30 @@ export default function FacultyDashboard() {
                     </span>
                   )}
                 </div>
-                
+
                 <p className="text-sm text-gray-600 mb-2">
-                  <span className="font-medium">Student:</span> {achievement.studentName} ({achievement.studentId})
+                  <span className="font-medium">Student:</span>{" "}
+                  {achievement.studentName} ({achievement.studentId})
                 </p>
-                
+
                 <p className="text-sm text-gray-500 mb-2">
                   Processed on: {achievement.processedDate}
                 </p>
-                
+
                 {achievement.feedback && (
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
-                    <p className="text-sm text-gray-600">{achievement.feedback}</p>
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Feedback:
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {achievement.feedback}
+                    </p>
                   </div>
                 )}
               </div>
-              
+
               <div className="flex items-center ml-4">
-                {achievement.status === 'approved' ? (
+                {achievement.status === "approved" ? (
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 ) : (
                   <XCircle className="w-6 h-6 text-red-600" />
@@ -554,41 +543,54 @@ export default function FacultyDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">My Students</h1>
-        <p className="text-gray-600 mt-1">Overview of students and their achievements</p>
+        <p className="text-gray-600 mt-1">
+          Overview of students and their achievements
+        </p>
       </div>
 
       <div className="grid gap-6">
-        {students.map(student => (
-          <div key={student.id} className="bg-white rounded-xl shadow-sm border p-6">
+        {students.map((student) => (
+          <div
+            key={student.id}
+            className="bg-white rounded-xl shadow-sm border p-6"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                   <User size={24} className="text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{student.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {student.name}
+                  </h3>
                   <p className="text-sm text-gray-500">
-                    {student.studentId} • Semester {student.semester}
+                    {student.studentId}
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-6">
                 <div className="text-center">
-                  <p className="text-lg font-bold text-blue-600">{student.totalAchievements}</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {student.totalAchievements}
+                  </p>
                   <p className="text-xs text-gray-500">Total</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-bold text-green-600">{student.approvedAchievements}</p>
+                  <p className="text-lg font-bold text-green-600">
+                    {student.approvedAchievements}
+                  </p>
                   <p className="text-xs text-gray-500">Approved</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-bold text-purple-600">{student.totalPoints}</p>
+                  <p className="text-lg font-bold text-purple-600">
+                    {student.totalPoints}
+                  </p>
                   <p className="text-xs text-gray-500">Points</p>
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-500">
                 Last activity: {student.lastActivity}
@@ -606,10 +608,12 @@ export default function FacultyDashboard() {
         <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
         <p className="text-gray-600 mt-1">Achievement statistics and trends</p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Approval Statistics</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Approval Statistics
+          </h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total Reviewed</span>
@@ -618,20 +622,28 @@ export default function FacultyDashboard() {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Approved</span>
               <span className="font-bold text-green-600">
-                {processedAchievements.filter(a => a.status === 'approved').length}
+                {
+                  processedAchievements.filter((a) => a.status === "approved")
+                    .length
+                }
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Rejected</span>
               <span className="font-bold text-red-600">
-                {processedAchievements.filter(a => a.status === 'rejected').length}
+                {
+                  processedAchievements.filter((a) => a.status === "rejected")
+                    .length
+                }
               </span>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Performance</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Student Performance
+          </h3>
           <div className="text-center py-8">
             <BarChart3 className="mx-auto h-16 w-16 text-gray-400 mb-2" />
             <p className="text-gray-500">Analytics charts coming soon...</p>
@@ -643,12 +655,18 @@ export default function FacultyDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return renderDashboard();
-      case 'approvals': return renderApprovals();
-      case 'history': return renderHistory();
-      case 'students': return renderStudents();
-      case 'analytics': return renderAnalytics();
-      default: return renderDashboard();
+      case "dashboard":
+        return renderDashboard();
+      case "approvals":
+        return renderApprovals();
+      case "history":
+        return renderHistory();
+      case "students":
+        return renderStudents();
+      case "analytics":
+        return renderAnalytics();
+      default:
+        return renderDashboard();
     }
   };
 
@@ -663,17 +681,24 @@ export default function FacultyDashboard() {
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                   <GraduationCap size={18} className="text-white" />
                 </div>
-                <span className="text-xl font-semibold text-gray-900">Faculty Portal</span>
+                <span className="text-xl font-semibold text-gray-900">
+                  Faculty Portal
+                </span>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.fullName}
+                </p>
               </div>
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold">
-                  {user?.fullName?.split(' ').map(n => n[0]).join('')}
+                  {user?.fullName
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")}
                 </span>
               </div>
             </div>
@@ -687,21 +712,26 @@ export default function FacultyDashboard() {
           <div className="w-64 bg-white rounded-xl shadow-sm border p-6">
             <nav className="space-y-2">
               {[
-                { name: 'Dashboard', tab: 'dashboard', icon: Home },
-                { name: 'Pending Approvals', tab: 'approvals', icon: Clock, badge: stats.pendingReviews },
-                { name: 'Review History', tab: 'history', icon: CheckCircle },
-                { name: 'My Students', tab: 'students', icon: Users },
-                { name: 'Analytics', tab: 'analytics', icon: BarChart3 }
+                { name: "Dashboard", tab: "dashboard", icon: Home },
+                {
+                  name: "Pending Approvals",
+                  tab: "approvals",
+                  icon: Clock,
+                  badge: stats.pendingReviews,
+                },
+                { name: "Review History", tab: "history", icon: CheckCircle },
+                { name: "My Students", tab: "students", icon: Users },
+                { name: "Analytics", tab: "analytics", icon: BarChart3 },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
                     key={item.name}
                     onClick={() => setActiveTab(item.tab)}
-                    className={`w-full flex items-center justify-between px-4 py-3 text-left rounded-lg transition-colors ${
-                      activeTab === item.tab 
-                        ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' 
-                        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                    className={`w-full flex items-center justify-between px-5 py-3 text-left rounded-lg transition-colors ${
+                      activeTab === item.tab
+                        ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
+                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                     }`}
                   >
                     <div className="flex items-center">
@@ -720,9 +750,7 @@ export default function FacultyDashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            {renderContent()}
-          </div>
+          <div className="flex-1">{renderContent()}</div>
         </div>
       </div>
 
@@ -732,8 +760,10 @@ export default function FacultyDashboard() {
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-100">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">Review Achievement</h2>
-                <button 
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Review Achievement
+                </h2>
+                <button
                   onClick={() => setShowModal(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
@@ -741,11 +771,13 @@ export default function FacultyDashboard() {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">{selectedAchievement.title}</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {selectedAchievement.title}
+                  </h3>
                   <div className="flex items-center space-x-2 mb-3">
                     <span className="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full">
                       {selectedAchievement.category}
@@ -758,45 +790,56 @@ export default function FacultyDashboard() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Student Name</label>
-                    <p className="text-gray-900">{selectedAchievement.studentName || selectedAchievement.student?.fullName}</p>
+                    <label className="text-sm font-medium text-gray-600">
+                      Student Name
+                    </label>
+                    <p className="text-gray-900">
+                      {selectedAchievement.studentName ||
+                        selectedAchievement.student?.fullName}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Student ID</label>
-                    <p className="text-gray-900">{selectedAchievement.studentId || selectedAchievement.student?._id}</p>
+                    <label className="text-sm font-medium text-gray-600">
+                      Student ID
+                    </label>
+                    <p className="text-gray-900">
+                      {selectedAchievement.studentId ||
+                        selectedAchievement.student?._id}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Semester</label>
-                    <p className="text-gray-900">{selectedAchievement.semester || selectedAchievement.student?.semester}</p>
+                    <label className="text-sm font-medium text-gray-600">
+                      Achievement Date
+                    </label>
+                    <p className="text-gray-900">
+                      {selectedAchievement.date
+                        ? new Date(
+                            selectedAchievement.date
+                          ).toLocaleDateString()
+                        : ""}
+                    </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Achievement Date</label>
-                    <p className="text-gray-900">{selectedAchievement.date ? new Date(selectedAchievement.date).toLocaleDateString() : ""}</p>
-                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600">
+                    Description
+                  </label>
+                  <p className="text-gray-900 mt-1">
+                    {selectedAchievement.description}
+                  </p>
                 </div>
 
                 <div>
                   <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2 block">
                     Proof
                   </label>
-                  {selectedAchievement.evidence ? (
+                  {selectedAchievement.proofUrl ? (
                     <div className="bg-gray-50 rounded-lg p-4">
-                      {selectedAchievement.evidence.endsWith(".pdf") ? (
-                        <a
-                          href={selectedAchievement.evidence}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                          </svg>
-                          <span>View PDF</span>
-                        </a>
-                      ) : (
+                      { (
                         <div className="border-2 border-dashed border-gray-200 rounded-lg p-2 bg-white">
                           <img
-                            src={selectedAchievement.evidence}
+                            src={selectedAchievement.proofUrl}
                             alt="Proof"
                             className="w-full max-h-64 object-contain rounded-lg shadow-sm"
                           />
@@ -809,26 +852,6 @@ export default function FacultyDashboard() {
                     </div>
                   )}
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Description</label>
-                  <p className="text-gray-900 mt-1">{selectedAchievement.description}</p>
-                </div>
-
-                {selectedAchievement.evidence && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Evidence</label>
-                    <div className="mt-1 flex items-center space-x-2">
-                      <FileText size={16} className="text-gray-400" />
-                      <span className="text-blue-600 hover:text-blue-700 cursor-pointer">
-                        {selectedAchievement.evidence}
-                      </span>
-                      <button className="text-blue-600 hover:text-blue-700">
-                        <Download size={16} />
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 <div>
                   <label className="text-sm font-medium text-gray-600 block mb-2">
@@ -846,21 +869,21 @@ export default function FacultyDashboard() {
             </div>
 
             <div className="p-6 border-t border-gray-100 flex justify-end space-x-3">
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
-              <button 
-                onClick={() => handleApproval(selectedAchievement.id || selectedAchievement._id, 'rejected', feedback)}
+              <button
+                onClick={() => rejectActivity(selectedAchievement.id || selectedAchievement._id)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
               >
                 <XCircle size={16} className="mr-2" />
                 Reject
               </button>
-              <button 
-                onClick={() => handleApproval(selectedAchievement.id || selectedAchievement._id, 'approved', feedback)}
+              <button
+                onClick={() => approveActivity(selectedAchievement.id || selectedAchievement._id)}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
               >
                 <CheckCircle size={16} className="mr-2" />

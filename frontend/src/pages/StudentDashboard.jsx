@@ -15,6 +15,8 @@ import {
 import AchievementUpload from "../components/AchievementUpload";
 import axios from "axios";
 import ViewDetails from "../components/ViewDetails";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 export default function SmartStudentHub() {
   const [user, setUser] = useState(null);
@@ -26,6 +28,8 @@ export default function SmartStudentHub() {
   const [activities, setActivities] = useState([]);
   const [selectedAchievement, setSelectedAchievement] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   const getData = async () => {
     const token = localStorage.getItem("token");
@@ -123,40 +127,7 @@ export default function SmartStudentHub() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
-              <span className="text-xl font-semibold text-gray-900">
-                Smart Student Hub
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button className="text-gray-500 hover:text-gray-700">
-                <Home size={20} />
-                <span className="ml-1 text-sm">Dashboard</span>
-              </button>
-              <button
-                className="text-gray-500 hover:text-gray-700 hover:cursor-pointer"
-                onClick={() => setUploadOpen(true)}
-              >
-                <Upload size={20} />
-                <span className="ml-1 text-sm">Upload Achievement</span>
-              </button>
-              <button className="text-gray-500 hover:text-gray-700">
-                <Eye size={20} />
-                <span className="ml-1 text-sm">My Profile</span>
-              </button>
-              <button className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                Login
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar setUploadOpen={setUploadOpen} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
@@ -234,8 +205,8 @@ export default function SmartStudentHub() {
                   <p className="text-gray-500 text-sm">
                     No achievements found.
                   </p>
-                ) : (
-                  activities.map((achievement) => (
+                ) : ( // want to show last 4 activities
+                  activities.slice(-4).map((achievement) => (
                     <div
                       key={achievement._id || achievement.id}
                       className="border border-gray-200 rounded-lg p-4"
@@ -324,7 +295,9 @@ export default function SmartStudentHub() {
                   <Eye size={16} className="mr-3" />
                   View Portfolio
                 </button>
-                <button className="w-full flex items-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                <button className="w-full flex items-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => navigate("/allAchievements")}
+                >
                   <List size={16} className="mr-3" />
                   All Achievements
                 </button>

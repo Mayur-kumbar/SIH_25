@@ -9,6 +9,7 @@ import { Signin } from "./pages/Signin";
 import { Signup } from "./pages/Signup";
 import StudentDashboard from "./pages/StudentDashboard";
 import FacultyDashboard from "./pages/FacultyDashboard";
+import AllAchievementsPage from "./pages/AllAchievementsPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/signin" element={<Signin />} />
           <Route path="/studentDashboard" element={<StudentDashboard />} />
           <Route path="/facultyDashboard" element={<FacultyDashboard />} />
+          <Route path="/allAchievements" element={<AllAchievementsPage />} />
         </Routes>
       </BrowserRouter>
     </>

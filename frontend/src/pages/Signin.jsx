@@ -23,6 +23,7 @@ export const Signin = () => {
       });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
+      localStorage.setItem("user", JSON.stringify(res.data.user.fullName));
       console.log(res)
       console.log(res.data.token)
       setMessage("Login successful");

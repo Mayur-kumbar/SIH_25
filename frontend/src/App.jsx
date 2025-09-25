@@ -10,6 +10,7 @@ import { Signup } from "./pages/Signup";
 import StudentDashboard from "./pages/StudentDashboard";
 import FacultyDashboard from "./pages/FacultyDashboard";
 import AllAchievementsPage from "./pages/AllAchievementsPage";
+import StudentProfile from "./pages/StudentProfile";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/studentDashboard" element={<StudentDashboard />} />
           <Route path="/facultyDashboard" element={<FacultyDashboard />} />
           <Route path="/allAchievements" element={<AllAchievementsPage />} />
+          <Route path="/profile" element={<StudentProfile />} />
         </Routes>
       </BrowserRouter>
     </>

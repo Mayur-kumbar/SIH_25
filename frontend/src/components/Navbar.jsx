@@ -1,9 +1,10 @@
 import React from 'react'
-import { Home, Upload, Eye } from "lucide-react";
+import { Home, Upload, Eye, User } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 const Navbar = ({ setUploadOpen }) => {
   const navigate = useNavigate();
+
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,9 +41,18 @@ const Navbar = ({ setUploadOpen }) => {
               <Eye size={20} className="mr-1" />
               <span className="text-sm font-medium">My Profile</span>
             </button>
-            <button className="ml-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition">
-              Login
-            </button>
+            
+              <button
+                className="ml-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("user");
+                  navigate("/signin");
+                }}
+              >
+                Logout
+              </button>
+            
           </div>
         </div>
       </div>

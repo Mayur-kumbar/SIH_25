@@ -291,7 +291,9 @@ export default function SmartStudentHub() {
                   <Upload size={16} className="mr-3" />
                   Upload New Achievement
                 </button>
-                <button className="w-full flex items-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                <button className="w-full flex items-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors" 
+                  onClick={() => navigate("/profile")}
+                >
                   <Eye size={16} className="mr-3" />
                   View Portfolio
                 </button>

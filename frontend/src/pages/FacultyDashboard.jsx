@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import {
   CheckCircle,
@@ -38,6 +39,8 @@ export default function FacultyDashboard() {
   const [selectedAchievement, setSelectedAchievement] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [feedback, setFeedback] = useState("");
+
+  const navigate = useNavigate();
 
   const getProfile = async () => {
     const token = localStorage.getItem("token");
@@ -688,19 +691,29 @@ export default function FacultyDashboard() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="hidden md:block text-right">
+              {/* <div className="hidden md:block text-right">
                 <p className="text-sm font-medium text-gray-900">
                   {user?.fullName}
                 </p>
-              </div>
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+              </div> */}
+              {/* <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold">
                   {user?.fullName
                     ?.split(" ")
                     .map((n) => n[0])
                     .join("")}
                 </span>
-              </div>
+              </div> */}
+                <button
+                className="ml-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("user");
+                  navigate("/signin");
+                }}
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>

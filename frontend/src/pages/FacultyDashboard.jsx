@@ -7,8 +7,6 @@ import {
   CheckCircle,
   XCircle,
   Eye,
-  Download,
-  Filter,
   Search,
   Users,
   Award,
@@ -16,12 +14,8 @@ import {
   FileText,
   BarChart3,
   Home,
-  Settings,
   Bell,
   Calendar,
-  AlertCircle,
-  MessageSquare,
-  User,
   GraduationCap,
   TrendingUp,
   X,
@@ -32,7 +26,6 @@ export default function FacultyDashboard() {
   const [user, setUser] = useState(null);
   const [pendingAchievements, setPendingAchievements] = useState([]);
   const [processedAchievements, setProcessedAchievements] = useState([]);
-  const [students] = useState();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -71,7 +64,7 @@ export default function FacultyDashboard() {
       const response = await axios.get("/api/activity/pending", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Map backend data to your frontend structure if needed
+
       setPendingAchievements(
         response.data.map((act) => ({
           id: act._id,
@@ -84,7 +77,6 @@ export default function FacultyDashboard() {
           submittedDate: act.updatedAt,
           status: act.status,
           proofUrl: act.proofUrl,
-          // Add other fields as needed
         }))
       );
 
@@ -94,9 +86,43 @@ export default function FacultyDashboard() {
     }
   };
 
+  const getProcessedActivities = async() => {
+    const token = localStorage.getItem("token")
+    try {
+      const response = await axios.get("/api/activity/processed-by-me", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      setProcessedAchievements(response.data.activities.map((act) => ({
+        id: act._id,
+        studentName: act.student?.fullName,
+        studentId: act.student?._id,
+        title: act.title,
+        category: act.category,
+        description: act.description,
+        date: act.createdAt,
+        processedDate: act.updatedAt,
+        status: act.status,
+        proofUrl: act.proofUrl,
+        feedback: act.feedback,
+        points: act.points,
+      })))
+      console.log("Fetched processed activities:", response.data)
+    } catch (error) {
+      console.error("Error fetching processed activities:", error)
+    }
+  }
+
   useEffect(() => {
+    if(!localStorage.getItem("token")){
+      navigate("/signin");
+      return;
+    }
     getProfile();
     getPendingActivities();
+    getProcessedActivities();
   }, []);
 
   // Handle approval/rejection
@@ -139,16 +165,14 @@ export default function FacultyDashboard() {
     setShowModal(true);
   };
 
-  // Computed stats
   const stats = {
     pendingReviews: pendingAchievements.length,
     approvedToday: processedAchievements.filter(
       (a) =>
         a.status === "approved" &&
-        a.processedDate === new Date().toISOString().split("T")[0]
+        a.processedDate &&
+        new Date(a.processedDate).toLocaleDateString() === new Date().toLocaleDateString()
     ).length,
-    // totalStudents: students.length,
-    // avgPoints: Math.round(students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length)
   };
 
   // Filter achievements
@@ -160,7 +184,7 @@ export default function FacultyDashboard() {
         .includes(searchTerm.toLowerCase()) ||
       achievement.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
-      filterCategory === "all" || achievement.category === filterCategory;
+      filterCategory === "all" || achievement.category == filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -337,12 +361,10 @@ export default function FacultyDashboard() {
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">All Categories</option>
-          <option value="Academic">Academic</option>
-          <option value="Competition">Competition</option>
-          <option value="Technical">Technical</option>
-          <option value="Certification">Certification</option>
-          <option value="Sports">Sports</option>
-          <option value="Cultural">Cultural</option>
+          <option value="conference">Conference</option>
+          <option value="competition">Competition</option>
+          <option value="internship">Internship</option>
+          <option value="certification">Certification</option>
         </select>
       </div>
 
@@ -362,9 +384,7 @@ export default function FacultyDashboard() {
                   <span className="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full">
                     {achievement.category}
                   </span>
-                  {/* <span className="px-3 py-1 bg-orange-100 text-orange-600 text-sm font-medium rounded-full">
-                    {achievement.points} points
-                  </span> */}
+                 
                 </div>
 
                 <div className="mb-3">
@@ -509,11 +529,13 @@ export default function FacultyDashboard() {
 
                 <p className="text-sm text-gray-600 mb-2">
                   <span className="font-medium">Student:</span>{" "}
-                  {achievement.studentName} ({achievement.studentId})
+                  {(achievement.studentName ||
+                    (achievement.student && achievement.student.fullName) ||
+                    "Unknown")} ({achievement.studentId})
                 </p>
 
                 <p className="text-sm text-gray-500 mb-2">
-                  Processed on: {achievement.processedDate}
+                  Processed on: {achievement.processedDate ? new Date(achievement.processedDate).toLocaleDateString() : "N/A"}
                 </p>
 
                 {achievement.feedback && (
@@ -542,68 +564,7 @@ export default function FacultyDashboard() {
     </div>
   );
 
-  const renderStudents = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Students</h1>
-        <p className="text-gray-600 mt-1">
-          Overview of students and their achievements
-        </p>
-      </div>
-
-      <div className="grid gap-6">
-        {students.map((student) => (
-          <div
-            key={student.id}
-            className="bg-white rounded-xl shadow-sm border p-6"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User size={24} className="text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {student.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {student.studentId}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-6">
-                <div className="text-center">
-                  <p className="text-lg font-bold text-blue-600">
-                    {student.totalAchievements}
-                  </p>
-                  <p className="text-xs text-gray-500">Total</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-green-600">
-                    {student.approvedAchievements}
-                  </p>
-                  <p className="text-xs text-gray-500">Approved</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-purple-600">
-                    {student.totalPoints}
-                  </p>
-                  <p className="text-xs text-gray-500">Points</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-500">
-                Last activity: {student.lastActivity}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+ 
 
   const renderAnalytics = () => (
     <div className="space-y-6">
@@ -691,19 +652,6 @@ export default function FacultyDashboard() {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-gray-900">
-                  {user?.fullName}
-                </p>
-              </div> */}
-              {/* <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold">
-                  {user?.fullName
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </span>
-              </div> */}
                 <button
                 className="ml-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow transition"
                 onClick={() => {
@@ -733,7 +681,6 @@ export default function FacultyDashboard() {
                   badge: stats.pendingReviews,
                 },
                 { name: "Review History", tab: "history", icon: CheckCircle },
-                { name: "My Students", tab: "students", icon: Users },
                 { name: "Analytics", tab: "analytics", icon: BarChart3 },
               ].map((item) => {
                 const Icon = item.icon;

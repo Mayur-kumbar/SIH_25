@@ -86,6 +86,10 @@ export default function SmartStudentHub() {
   };
 
   useEffect(() => {
+     if(!localStorage.getItem("token")){
+      navigate("/signin");
+      return;
+    }
     getData();
     getProfile();
   }, []);

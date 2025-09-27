@@ -3,8 +3,8 @@ import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import Activity from "../models/activity.model.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import { getMyActivities } from "../controllers/activity.controller.js";
-import User from "../models/user.model.js";
+import { approveActivity, getMyActivities, getPendingActivities, getProcessedActivities, rejectActivity } from "../controllers/activity.controller.js";
+
 
 const router = Router();
 
@@ -55,61 +55,15 @@ router.put(
   "/:id/approve",
   protect,
   authorizeRoles("teacher"),
-  async (req, res) => {
-    try {
-      const activity = await Activity.findById(req.params.id);
-      if (!activity)
-        return res.status(404).json({ message: "Activity not found" });
-
-      activity.status = "approved";
-      activity.approver = req.user._id;
-
-      await activity.save();
-      res.json({ message: "Activity approved", activity });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
+  approveActivity
 );
 
-router.put("/:id/reject", protect, authorizeRoles("teacher"), async (req, res) => {
-  try {
-    const activity = await Activity.findById(req.params.id);
-    if (!activity) return res.status(404).json({ message: "Activity not found" });
-
-    activity.status = "rejected";
-    activity.approver = req.user._id;
-
-    await activity.save();
-    res.json({ message: "Activity rejected", activity });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+router.put("/:id/reject", protect, authorizeRoles("teacher"), rejectActivity);
 
 router.get("/my", protect, authorizeRoles("student"), getMyActivities);
 
-router.get("/pending", protect, authorizeRoles("teacher"), async (req, res) => {
-  try {
-    // Get teacher's department
-    const teacher = await User.findById(req.user.id);
-    if (!teacher) return res.status(404).json({ message: "Teacher not found" });
+router.get("/pending", protect, authorizeRoles("teacher"), getPendingActivities);
 
-    // Find pending activities where the student's department matches the teacher's
-    const activities = await Activity.find({ status: "pending" }).populate({
-      path: "student",
-      select: "fullName department email",
-    });
-
-    // Filter by department
-    const filtered = activities.filter(
-      (act) => act.student && act.student.department === teacher.department
-    );
-
-    res.json(filtered);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+router.get("/processed-by-me", protect, authorizeRoles("teacher"), getProcessedActivities)
 
 export default router;

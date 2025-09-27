@@ -4,16 +4,7 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 
 export default function StudentProfile() {
-  // Mock fallback data
-  const mockUser = {
-    fullName: "Mayur Kumbar",
-    semester: "5th Semester",
-    usn: "2GI23IS069",
-    currentYear: "3rd Year",
-    phone: "3336669990",
-    department: "Computer Science",
-    email: "Mayur@example.com",
-  };
+ 
 
   const mockAttendance = {
     overall: 82,
@@ -97,15 +88,15 @@ export default function StudentProfile() {
   ];
 
   // State with mock defaults
-  const [user, setUser] = useState(mockUser);
+  const [user, setUser] = useState({});
   const [attendance, setAttendance] = useState(mockAttendance);
   const [courses, setCourses] = useState(mockCourses);
   const [results, setResults] = useState(mockResults);
-  const [achievements, setAchievements] = useState(mockAchievements);
+  const [achievements, setAchievements] = useState([]);
   const [activeTab, setActiveTab] = useState("profile");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [editUser, setEditUser] = useState(mockUser);
+  const [editUser, setEditUser] = useState();
 
   // Fetch Profile
   const getProfile = async () => {
@@ -118,10 +109,9 @@ export default function StudentProfile() {
       const res = await axios.get("/api/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUser(res.data.user || mockUser);
+      setUser(res.data.user);
     } catch (err) {
       console.error("Error fetching profile:", err);
-      setUser(mockUser);
     }
   };
 
@@ -178,6 +168,15 @@ export default function StudentProfile() {
     }
   };
 
+  const fetchActivities = async () => {
+    const token = localStorage.getItem("token");
+    const response = await axios.get("/api/activity/my", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setAchievements(response.data.activities);
+  };
+
+
   const handleInputChange = (field, value) => {
     setEditUser(prev => ({
       ...prev,
@@ -201,6 +200,7 @@ export default function StudentProfile() {
     getCourses();
     getResults();
     getAchievements();
+    fetchActivities();
   }, []);
 
   useEffect(() => {
@@ -468,35 +468,109 @@ export default function StudentProfile() {
             )}
 
             {activeTab === "achievements" && (
-              <div>
-                <h2 className="text-lg font-semibold mb-4">My Achievements</h2>
-                {achievements.length > 0 ? (
-                  <div className="space-y-4">
-                    {achievements.map((achievement) => (
-                      <div key={achievement.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(achievement.category)}`}>
-                            {achievement.category}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 text-sm mb-2">{achievement.description}</p>
-                        <div className="flex justify-between items-center text-xs text-gray-500">
-                          <span>Issued by: {achievement.issuer}</span>
-                          <span>{formatDate(achievement.date)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+  <div className="space-y-6">
+    <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+      My Achievements
+    </h2>
+
+    {achievements.length > 0 ? (
+      <div className="space-y-4">
+        {achievements.map((achievement) => (
+          <div
+            key={achievement.id}
+            className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow"
+          >
+            {/* Title + Category */}
+            <div className="flex justify-between items-start mb-3">
+              <h3 className="font-semibold text-lg text-gray-900">
+                {achievement.title}
+              </h3>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                  achievement.category
+                )}`}
+              >
+                {achievement.category}
+              </span>
+            </div>
+
+            {/* Description */}
+            <p className="text-gray-700 text-sm mb-3">
+              {achievement.description}
+            </p>
+
+            {/* Status + Approver + Date */}
+            <div className="flex flex-wrap gap-3 items-center text-xs text-gray-500 mb-3">
+              <span
+                className={`px-2.5 py-1 rounded-full font-semibold ${
+                  achievement.status === "approved"
+                    ? "bg-green-100 text-green-700"
+                    : achievement.status === "rejected"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
+                {achievement.status
+                  ? achievement.status.charAt(0).toUpperCase() +
+                    achievement.status.slice(1)
+                  : "Pending"}
+              </span>
+
+              {achievement.approver?.fullName && (
+                <span>
+                  {achievement.status === "approved"
+                    ? "Approved by "
+                    : achievement.status === "rejected"
+                    ? "Rejected by "
+                    : ""}
+                  <span className="font-medium">
+                    {achievement.approver.fullName}
+                  </span>
+                </span>
+              )}
+
+              <span>
+                {achievement.updatedAt
+                  ? formatDate(achievement.updatedAt)
+                  : achievement.date
+                  ? formatDate(achievement.date)
+                  : ""}
+              </span>
+            </div>
+
+            {/* Proof */}
+            {achievement.proof && (
+              <div className="mt-2">
+                <span className="font-medium text-gray-800">Proof: </span>
+                {achievement.proof.startsWith("http") ? (
+                  <a
+                    href={achievement.proof}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-teal-600 underline break-all hover:text-teal-800"
+                  >
+                    View Proof
+                  </a>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Award size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>No achievements found.</p>
-                    <p className="text-sm">Your achievements will appear here once you earn them.</p>
-                  </div>
+                  <span className="text-gray-500">{achievement.proof}</span>
                 )}
               </div>
             )}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-12 text-gray-500">
+        <Award size={56} className="mx-auto mb-4 opacity-40 text-gray-400" />
+        <p className="text-lg font-medium">No achievements found.</p>
+        <p className="text-sm">
+          Your achievements will appear here once you add them.
+        </p>
+      </div>
+    )}
+  </div>
+)}
+
           </div>
         </div>
       </div>

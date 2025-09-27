@@ -21,7 +21,7 @@ const registerUser = asyncHandler(async(req, res) => {
       email,
       accountType,
       department,
-      password: hashedPassword,
+      password: hashedPassword, 
     });
 
     await newUser.save();
@@ -88,6 +88,30 @@ const loginUser = asyncHandler(async(req, res) => {
   }
 })
 
+const updateProfile = asyncHandler(async(req, res) => {
+  try {
+    const { fullName, USN, phoneNumber, semester, currentYear, department} = req.body;
+    
+    const user = await User.findById(req.user.id)
+    if(!user) return res.status(404).json({message: "User not found"})
+    
+    user.fullName = fullName || user.fullName
+    user.USN =  USN || user.USN
+    user.phoneNumber = phoneNumber || user.phoneNumber
+    user.semester = semester || user.semester
+    user.currentYear = currentYear || user.currentYear
+    user.department = department || user.department
+
+    await user.save()
+
+    res.status(200).json({message: "Profile updated successfully", user})
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
 const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).select("-password");
   if (!user) return res.status(404).json({ message: "User not found" });
@@ -97,5 +121,6 @@ const getProfile = asyncHandler(async (req, res) => {
 export {
   registerUser,
   loginUser,
-  getProfile
+  getProfile,
+  updateProfile
 }

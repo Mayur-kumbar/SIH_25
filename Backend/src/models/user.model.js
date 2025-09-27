@@ -30,6 +30,27 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    USN: {
+      type: String,
+      unique: true,
+      // sparse: true,
+      uppercase: true,
+    },
+    phoneNumber: {
+      type: Number,
+      unique: true,
+      // sparse: true,
+    },
+    semester: {
+      type: Number,
+      min: 1,
+      max: 8,
+    },
+    currentYear: {
+      type: Number,
+      min: 1,
+      max: 4,
+    }
   },
   { timestamps: true }
 );

@@ -318,19 +318,19 @@ export default function SmartStudentHub() {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-medium text-gray-500">
-                    Roll Number
+                    USN
                   </p>
-                  <p className="text-sm text-gray-900">N/A</p>
+                  <p className="text-sm text-gray-900">{user?.USN || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">
                     Department
                   </p>
-                  <p className="text-sm text-gray-900">{user?.department}</p>
+                  <p className="text-sm text-gray-900">{user?.department || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Year</p>
-                  <p className="text-sm text-gray-900">N/A</p>
+                  <p className="text-sm text-gray-900">{user?.currentYear || "N/A"}</p>
                 </div>
               </div>
             </div>

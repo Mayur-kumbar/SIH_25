@@ -32,7 +32,7 @@ const registerUser = asyncHandler(async(req, res) => {
     const token = jwt.sign(
       { id: newUser._id, role: newUser.accountType },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "2h" }
     );
 
     res.status(201).json({
@@ -68,7 +68,7 @@ const loginUser = asyncHandler(async(req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.accountType },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "2h" }
     );
 
     res.status(200).json({

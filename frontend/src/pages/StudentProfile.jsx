@@ -3,6 +3,7 @@ import { User, Clock, BookOpen, BarChart3, Award } from "lucide-react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import { Navigate, useNavigate } from "react-router-dom";
+import AchievementUpload from "../components/AchievementUpload";
 
 export default function StudentProfile() {
   const mockAttendance = {
@@ -147,7 +148,6 @@ export default function StudentProfile() {
     }
   };
 
-  console.log("Edit User:", editUser);
   const updateProfile = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -628,6 +628,11 @@ export default function StudentProfile() {
           </div>
         </div>
       </div>
+      <AchievementUpload
+                open={uploadOpen}
+                onClose={() => setUploadOpen(false)}
+                onUpload={fetchActivities}
+            />
     </div>
   );
 }
